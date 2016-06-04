@@ -4,17 +4,19 @@
 # File: blocklist                                        /\
 # Type: C Shell Script                                  /_.\
 # By Fernando Gilli fernando<at>wekers(dot)org    _,.-'/ `",\'-.,_
-# Last modified:2016-05-20                     -~^    /______\`~~-^~:
+# Last modified:2016-06-03                     -~^    /______\`~~-^~:
 # ------------------------
 # Get list of all blacklisted ip's (ssh brutefroce, robot, etc
-# from http://lists.blocklist.de and put them on pf firewall
+# from http://lists.blocklist.de & uceprotect level 2,
+# them put on pf firewall
 # / OS : $FreeBSD
 # -------------------------------------------------------------------
 
 set URL="http://lists.blocklist.de/lists/all.txt"
+set URL2="http://wget-mirrors.uceprotect.net/rbldnsd-all/dnsbl-2.uceprotect.net.gz"
 
 #echo "Fazendo download da blacklist..."
-echo "Downloading blacklist..."
+echo "Downloading blacklist from blocklist.de ..."
 /usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
 
 if ($status == 0) then
@@ -23,6 +25,7 @@ if ($status == 0) then
 else
         #echo "Erro no download, tentando novamente..."
         echo "Download error, try again..."
+        /bin/sleep 10
         /usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
 
         if ($status != 0) then
@@ -31,15 +34,44 @@ else
                 #echo "Nada a ser feito.."
                 echo "Nothing to do.."
                 #echo "Falha ao fazer download dos ips no arquivo /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
-                echo "Fail to try get download of ip's on file /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
+                echo "Fail to try get download of ip's from blocklist.de on file /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
                 exit
         endif
 
 endif
 
+echo "Downloading blacklist from uceprotect.net ..."
+/bin/sleep 5
+/usr/local/bin/wget --no-verbose -O - $URL2 | /usr/bin/gunzip > /var/db/blocklist2.tmp
+
+if ($status == 0) then
+        echo "Download complete!"
+else
+        echo "Download error, try again..."
+        /bin/sleep 10
+        /usr/local/bin/wget --no-verbose -O - $URL2 | /usr/bin/gunzip > /var/db/blocklist2.tmp
+
+        if ($status != 0) then
+                echo "Fail on the second attempt to try get download"
+                echo "Nothing to do.."
+                echo "Fail to try get download of ip's from uceprotect.net on file /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
+                exit
+        endif
+
+endif
+
+
 # Adiciona ips singulares, evitando repetições
 # add singular ips, avoid repetitions
 /usr/bin/sort /var/db/blocklist.tmp | uniq > /var/db/blocklist
+
+echo "join ips from uceprotect.net to blocklist file"
+/bin/cat /var/db/blocklist2.tmp | sed '/^\!/ d;/^#/ d;/^$SOA/ d;/^:/ d;/^127.0.0.2/ d' | awk '{print $1}' >> /var/db/blocklist
+
+# Clean files
+echo -n > /var/db/blocklist.tmp
+echo -n > /var/db/blocklist2.tmp
+
 
 set ips=`/bin/cat /var/db/blocklist | wc -l`
 
