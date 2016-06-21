@@ -4,7 +4,7 @@
 # File: blocklist                                        /\
 # Type: C Shell Script                                  /_.\
 # By Fernando Gilli fernando<at>wekers(dot)org    _,.-'/ `",\'-.,_
-# Last modified:2016-06-03                     -~^    /______\`~~-^~:
+# Last modified:2016-06-15                     -~^    /______\`~~-^~:
 # ------------------------
 # Get list of all blacklisted ip's (ssh brutefroce, robot, etc
 # from http://lists.blocklist.de & uceprotect level 2,
@@ -23,18 +23,29 @@ if ($status == 0) then
         #echo "Download completo!"
         echo "Download complete!"
 else
+
+        @ again_URL= 1
+
+again_URL:
         #echo "Erro no download, tentando novamente..."
         echo "Download error, try again..."
         /bin/sleep 10
         /usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
 
-        if ($status != 0) then
-                #echo "Falha na segunda tentativa de efetuar o download"
-                echo "Fail on the second attempt to try get download"
+        if ($status != 0 && $again_URL < 3) then
+                @ again_URL++
+                /bin/sleep 5
+                goto again_URL
+
+        else if ($again_URL == 3) then
+                #echo "Falha nas 3 tentativas extras  de efetuar o download"
+                echo "Failed on three extra attempts to get download"
                 #echo "Nada a ser feito.."
                 echo "Nothing to do.."
-                #echo "Falha ao fazer download dos ips no arquivo /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
-                echo "Fail to try get download of ip's from blocklist.de on file /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
+                #echo "Falha ao fazer download dos ips nas 3 tentativas extras de blocklist.de no arquivo /usr/local/sbin/blocklist" \
+                #                                                                                  | mail -s "Script blocklist" root
+                echo "Failure to try get download of ip's from blocklist.de on three extra attempts in file /usr/local/sbin/blocklist" \
+                                                                                                    | mail -s "Script blocklist" root
                 exit
         endif
 
@@ -47,14 +58,28 @@ echo "Downloading blacklist from uceprotect.net ..."
 if ($status == 0) then
         echo "Download complete!"
 else
+
+        @ again_URL2 = 1
+
+again_URL2:
         echo "Download error, try again..."
         /bin/sleep 10
         /usr/local/bin/wget --no-verbose -O - $URL2 | /usr/bin/gunzip > /var/db/blocklist2.tmp
 
-        if ($status != 0) then
-                echo "Fail on the second attempt to try get download"
+        if ($status != 0 && $again_URL2 < 3) then
+                @ again_URL2++
+                /bin/sleep 12
+                goto again_URL2
+
+        else if ($again_URL2 == 3) then
+                #echo "Falha nas 3 tentativas extras  de efetuar o download"
+                echo "Failed on three extra attempts to get download"
+                #echo "Nada a ser feito.."
                 echo "Nothing to do.."
-                echo "Fail to try get download of ip's from uceprotect.net on file /usr/local/sbin/blocklist" | mail -s "Script blocklist" root
+                #echo "Falha ao fazer download dos ips nas 3 tentativas extras de blocklist.de no arquivo /usr/local/sbin/blocklist" \
+                #                                                                                  | mail -s "Script blocklist" root
+                echo "Failure to try get download of ip's from uceprotect.net on three extra attempts in file /usr/local/sbin/blocklist" \
+                                                                                                      | mail -s "Script blocklist" root
                 exit
         endif
 
