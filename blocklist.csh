@@ -91,7 +91,7 @@ endif
 /usr/bin/sort /var/db/blocklist.tmp | uniq > /var/db/blocklist
 
 echo "join ips from uceprotect.net to blocklist file"
-/bin/cat /var/db/blocklist2.tmp | sed '/^\!/ d;/^#/ d;/^$SOA/ d;/^:/ d;/^127.0.0.2/ d' | awk '{print $1}' >> /var/db/blocklist
+/bin/cat /var/db/blocklist2.tmp | sed '/^\!/ d;/^#/ d;/^$NS/ d;/^$SOA/ d;/^:/ d;/^127.0.0.2/ d' | awk '{print $1}' >> /var/db/blocklist
 
 # Clean files
 echo -n > /var/db/blocklist.tmp
