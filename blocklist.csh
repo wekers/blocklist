@@ -15,6 +15,11 @@
 set URL="http://lists.blocklist.de/lists/all.txt"
 set URL2="http://wget-mirrors.uceprotect.net/rbldnsd-all/dnsbl-2.uceprotect.net.gz"
 
+# Clean files
+echo -n > /var/db/blocklist.tmp
+echo -n > /var/db/blocklist2.tmp
+
+
 #echo "Fazendo download da blacklist..."
 echo "Downloading blacklist from blocklist.de ..."
 /usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
@@ -37,7 +42,7 @@ again_URL:
                 /bin/sleep 5
                 goto again_URL
 
-        else if ($again_URL == 3) then
+        else if ($again_URL == 3 && -z /var/db/blocklist.tmp) then
                 #echo "Falha nas 3 tentativas extras  de efetuar o download"
                 echo "Failed on three extra attempts to get download"
                 #echo "Nada a ser feito.."
@@ -71,7 +76,7 @@ again_URL2:
                 /bin/sleep 12
                 goto again_URL2
 
-        else if ($again_URL2 == 3) then
+        else if ($again_URL2 == 3 && -z /var/db/blocklist2.tmp) then
                 #echo "Falha nas 3 tentativas extras  de efetuar o download"
                 echo "Failed on three extra attempts to get download"
                 #echo "Nada a ser feito.."
