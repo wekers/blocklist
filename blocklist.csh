@@ -93,30 +93,36 @@ again_URL2:
 
 endif
 
-echo "Fazendo download da blacklist on openbl.org..."
+#echo "Fazendo download da blacklist on openbl.org..."
+echo "Downloading blacklist from openbl.org ..."
 /usr/local/bin/wget --no-verbose -O - $URL3 > /var/db/blocklist3.tmp
 
 if ($status == 0) then
-        echo "Download completo!"
+        echo "Download complete!"
+        #echo "Download completo!"
 else
         @ again_URL3 = 1
 
 again_URL3:
-        echo "Erro no download, tentando novamente..."
+        #echo "Erro no download, tentando novamente..."
+        echo "Download error, try again..."
         /bin/sleep 10
         /usr/local/bin/wget --no-verbose -O - $URL3 > /var/db/blocklist3.tmp
 
         if ($status != 0 && $again_URL3 < 3) then
         @ again_URL3++
-        echo "tentativa again_URL3 numero $again_URL3" | mail -s "tentativa blocklist script" root
         /bin/sleep 12
         goto again_URL3
 
         else if ($again_URL3 == 3 && -z /var/db/blocklist3.tmp) then
-                echo "Falha nas 3 tentativas extras de efetuar o download"
-                echo "Nada a ser feito.."
-                echo "Falha ao fazer download dos ips nas 3 tentivas extras da openbl.org no arquivo /usr/local/sbin/blocklist" \
-                                                                                             | mail -s "Script blocklist" root
+                #echo "Falha nas 3 tentativas extras de efetuar o download"
+                echo "Failed on three extra attempts to get download"
+                #echo "Nada a ser feito.."
+                echo "Nothing to do.."
+                #echo "Falha ao fazer download dos ips nas 3 tentivas extras da openbl.org no arquivo /usr/local/sbin/blocklist" \
+                #                                                                             | mail -s "Script blocklist" root
+                echo "Failure to try get download of ip's from openbl.org on three extra attempts in file /usr/local/sbin/blocklist" \
+                                                                                                  | mail -s "Script blocklist" root
                 exit
         endif
 
