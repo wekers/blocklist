@@ -4,45 +4,48 @@
 # File: blocklist                                        /\
 # Type: C Shell Script                                  /_.\
 # By Fernando Gilli fernando<at>wekers(dot)org    _,.-'/ `",\'-.,_
-# Last modified:2016-06-15                     -~^    /______\`~~-^~:
+# Last modified:2016-06-20                     -~^    /______\`~~-^~:
 # ------------------------
 # Get list of all blacklisted ip's (ssh brutefroce, robot, etc
-# from http://lists.blocklist.de & uceprotect level 2,
-# them put on pf firewall
+# from http://lists.blocklist.de, uceprotect level 2 & openbl.org,
+# put them on PF Firewall
 # / OS : $FreeBSD
 # -------------------------------------------------------------------
 
-set URL="http://lists.blocklist.de/lists/all.txt"
+set URL1="http://lists.blocklist.de/lists/all.txt"
 set URL2="http://wget-mirrors.uceprotect.net/rbldnsd-all/dnsbl-2.uceprotect.net.gz"
+set URL3="https://www.openbl.org/lists/base.txt"
 
 # Clean files
 echo -n > /var/db/blocklist.tmp
+echo -n > /var/db/blocklist1.tmp
 echo -n > /var/db/blocklist2.tmp
+echo -n > /var/db/blocklist3.tmp
 
 
 #echo "Fazendo download da blacklist..."
 echo "Downloading blacklist from blocklist.de ..."
-/usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
+/usr/local/bin/wget --no-verbose -O - $URL1 > /var/db/blocklist1.tmp
 
 if ($status == 0) then
         #echo "Download completo!"
         echo "Download complete!"
 else
 
-        @ again_URL= 1
+        @ again_URL1 = 1
 
-again_URL:
+again_URL1:
         #echo "Erro no download, tentando novamente..."
         echo "Download error, try again..."
         /bin/sleep 10
-        /usr/local/bin/wget --no-verbose -O - $URL > /var/db/blocklist.tmp
+        /usr/local/bin/wget --no-verbose -O - $URL1 > /var/db/blocklist1.tmp
 
-        if ($status != 0 && $again_URL < 3) then
-                @ again_URL++
+        if ($status != 0 && $again_URL1 < 3) then
+                @ again_URL1++
                 /bin/sleep 5
-                goto again_URL
+                goto again_URL1
 
-        else if ($again_URL == 3 && -z /var/db/blocklist.tmp) then
+        else if ($again_URL1 == 3 && -z /var/db/blocklist1.tmp) then
                 #echo "Falha nas 3 tentativas extras  de efetuar o download"
                 echo "Failed on three extra attempts to get download"
                 #echo "Nada a ser feito.."
@@ -90,17 +93,57 @@ again_URL2:
 
 endif
 
+echo "Fazendo download da blacklist on openbl.org..."
+/usr/local/bin/wget --no-verbose -O - $URL3 > /var/db/blocklist3.tmp
+
+if ($status == 0) then
+        echo "Download completo!"
+else
+        @ again_URL3 = 1
+
+again_URL3:
+        echo "Erro no download, tentando novamente..."
+        /bin/sleep 10
+        /usr/local/bin/wget --no-verbose -O - $URL3 > /var/db/blocklist3.tmp
+
+        if ($status != 0 && $again_URL3 < 3) then
+        @ again_URL3++
+        echo "tentativa again_URL3 numero $again_URL3" | mail -s "tentativa blocklist script" root
+        /bin/sleep 12
+        goto again_URL3
+
+        else if ($again_URL3 == 3 && -z /var/db/blocklist3.tmp) then
+                echo "Falha nas 3 tentativas extras de efetuar o download"
+                echo "Nada a ser feito.."
+                echo "Falha ao fazer download dos ips nas 3 tentivas extras da openbl.org no arquivo /usr/local/sbin/blocklist" \
+                                                                                             | mail -s "Script blocklist" root
+                exit
+        endif
+
+endif
+
+
+
 
 # Adiciona ips singulares, evitando repetições
 # add singular ips, avoid repetitions
-/usr/bin/sort /var/db/blocklist.tmp | uniq > /var/db/blocklist
+/usr/bin/sort /var/db/blocklist1.tmp | uniq > /var/db/blocklist.tmp
 
 echo "join ips from uceprotect.net to blocklist file"
-/bin/cat /var/db/blocklist2.tmp | sed '/^\!/ d;/^#/ d;/^$NS/ d;/^$SOA/ d;/^:/ d;/^127.0.0.2/ d' | awk '{print $1}' >> /var/db/blocklist
+/bin/cat /var/db/blocklist2.tmp | sed '/^\!/ d;/^#/ d;/^$NS/ d;/^$SOA/ d;/^:/ d;/^127.0.0.2/ d' | awk '{print $1}' >> /var/db/blocklist.tmp
+
+echo "join ips from openbl.org to blocklist file"
+/usr/bin/sort /var/db/blocklist3.tmp | sed '/^#/ d' >> /var/db/blocklist.tmp
+
+# add only single ips
+/usr/bin/sort /var/db/blocklist.tmp | uniq > /var/db/blocklist
+
 
 # Clean files
 echo -n > /var/db/blocklist.tmp
+echo -n > /var/db/blocklist1.tmp
 echo -n > /var/db/blocklist2.tmp
+echo -n > /var/db/blocklist3.tmp
 
 
 set ips=`/bin/cat /var/db/blocklist | wc -l`
