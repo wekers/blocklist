@@ -1,6 +1,6 @@
 # blocklist
 _ _ _
-###### Get list from bad ips from http://lists.blocklist.de put on Firewall and keep robots, bruteforces, etc, so far away..
+###### Get list from bad ips from http://lists.blocklist.de, uceprotect.net & openbl.org put them on Firewall and keep robots, bruteforces, etc, so far away..
 
 _ _ _
 
@@ -13,6 +13,7 @@ _ _ _
 
 	- 21
 	- 22
+	- 23
 	- 25
 	- 80
 	- 110
@@ -31,6 +32,7 @@ _ _ _
 	- imap
 	- ircbot
 	- pop3
+	- submission
 	- postfix
 	- sip
 	- ssh
@@ -50,12 +52,23 @@ Create:
 table <blocklist> persist file "/var/db/blocklist"
 ```
 - a rule to block
+- ie: assume ext_if="em0"
 
 
 ```bash
 block drop in log quick on $ext_if from <blocklist> to any
 
 ```
+
+if you want not block 'maybe' a some legitimate email and sender notified "why was rejected" by your mail system
+change rule to:
+
+```bash
+block drop in log quick on $ext_if proto tcp from <blocklist> to any port != smtp
+block drop in log quick on $ext_if proto { udp, icmp } from <blocklist> to any
+
+```
+
 
 
 First run script manually, if all will be ok
