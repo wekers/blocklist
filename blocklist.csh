@@ -54,7 +54,6 @@ again_URL1:
                 #                                                                                  | mail -s "Script blocklist" root
                 echo "Failure to try get download of ip's from blocklist.de on three extra attempts in file /usr/local/sbin/blocklist" \
                                                                                                     | mail -s "Script blocklist" root
-                exit
         endif
 
 endif
@@ -88,7 +87,6 @@ again_URL2:
                 #                                                                                  | mail -s "Script blocklist" root
                 echo "Failure to try get download of ip's from uceprotect.net on three extra attempts in file /usr/local/sbin/blocklist" \
                                                                                                       | mail -s "Script blocklist" root
-                exit
         endif
 
 endif
@@ -123,7 +121,6 @@ again_URL3:
                 #                                                                             | mail -s "Script blocklist" root
                 echo "Failure to try get download of ip's from openbl.org on three extra attempts in file /usr/local/sbin/blocklist" \
                                                                                                   | mail -s "Script blocklist" root
-                exit
         endif
 
 endif
