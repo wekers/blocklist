@@ -1,6 +1,6 @@
 # blocklist
 _ _ _
-###### Get list from bad ips from blocklist.de, uceprotect.net, binarydefense, firehol, danger.rulez.sk put them on Firewall and keep robots, bruteforces, etc, so far away..
+###### Get bad ip's list from blocklist.de, uceprotect.net, binarydefense, firehol, danger.rulez.sk put them on Firewall and keep robots, bruteforces, etc, so far away..
 
 _ _ _
 
