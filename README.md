@@ -1,6 +1,3 @@
-BinaryDefense file is off this week Reply: -"We just underwent a website change and it affected the ban list. We are working to remedy it and it should be back either by end of week or early next week." 
-
-
 # blocklist
 _ _ _
 ###### Get bad ip's list from blocklist.de, uceprotect.net, binarydefense, firehol, danger.rulez.sk put them on Firewall and keep robots, bruteforces, etc, so far away..
